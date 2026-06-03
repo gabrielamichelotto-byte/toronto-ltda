@@ -1,0 +1,38 @@
+# ── Toronto LTDA — .gitignore (estratégia portfolio) ──────────────────────────
+# Versiona: scripts, README, requirements.txt, queries.sql, chartjs.min.js
+#           e os artefatos-vitrine (dashboard.html, Toronto_LTDA_Relatorio.xlsx)
+# Ignora:   lixo de Python, IDE/SO, config local e dados intermediários
+#           (regeneráveis pelo pipeline — semente fixa)
+
+# ── Lixo de Python ────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.Python
+*.egg-info/
+
+# ── Dados intermediários (regeneráveis) ───────────────────────────────────────
+toronto_ltda.db
+dados_crus/
+dados_tratados/
+
+# ── Scripts de debug descartáveis ─────────────────────────────────────────────
+_*.py
+
+# ── IDE / Sistema operacional ─────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Config local do Claude Code ───────────────────────────────────────────────
+.claude/settings.local.json
+
+# ── NÃO ignorar (artefatos-vitrine — devem ir para o repo) ────────────────────
+!dashboard.html
+!index.html
+!Toronto_LTDA_Relatorio.xlsx

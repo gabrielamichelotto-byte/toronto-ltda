@@ -1,0 +1,6 @@
+# Toronto LTDA — dependências do projeto
+# Instale com:  pip install -r requirements.txt
+
+pandas>=2.0      # geração de dados, ETL, dashboard, Excel, auditoria
+numpy>=1.24      # geração de dados e ETL
+openpyxl>=3.1    # geração do relatório Excel (gerar_excel.py)
