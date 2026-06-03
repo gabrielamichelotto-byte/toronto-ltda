@@ -3,7 +3,7 @@
 > Pipeline completo de dados — geração, ETL, SQL analytics e dashboard interativo —
 > sobre uma importadora fictícia de vinhos premium B2B.
 
-**[▶ Ver dashboard ao vivo](https://gabrielamichelotto.github.io/toronto-ltda)**
+**[▶ Ver dashboard ao vivo](https://gabrielamichelotto-byte.github.io/toronto-ltda)**
 
 ---
 
