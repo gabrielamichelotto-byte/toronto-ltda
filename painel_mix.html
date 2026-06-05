@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Toronto LTDA — Mix de Produtos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="chartjs.min.js"></script>
+<style>
+/* ── Reset ───────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,-apple-system,sans-serif;background:#f5f0e8;color:#0f172a}
+
+/* ── App shell ───────────────────────────────────────────── */
+.app{display:flex;height:100vh;width:100%;overflow:hidden}
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+.sidebar{
+  width:210px;flex-shrink:0;background:#fff;
+  display:flex;flex-direction:column;overflow-y:auto;
+  border-right:1px solid #e8e4dc
+}
+
+.sb-logo-top{
+  padding:22px 14px 18px;text-align:center;
+  border-bottom:1px solid #e8e4dc;flex-shrink:0
+}
+.sb-logo-big{
+  height:96px;width:auto;border-radius:10px;
+  background:#f5f0e8;padding:6px 16px;
+  display:block;margin:0 auto
+}
+
+.sb-sec{
+  font-size:.57rem;font-weight:700;letter-spacing:1.6px;color:#a09880;
+  padding:14px 14px 5px;text-transform:uppercase;flex-shrink:0
+}
+
+.sb-nav{padding:0 8px 6px;flex-shrink:0}
+.sb-nav a{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 10px;font-size:.74rem;color:#64748b;text-decoration:none;
+  border-left:3px solid transparent;border-radius:0 6px 6px 0;
+  transition:all .15s;margin-bottom:2px
+}
+.sb-nav a:hover{background:#f5f0e8;color:#0f172a}
+.sb-nav a.active{
+  background:#ede8df;border-left-color:#8a7560;
+  color:#3d2e1e;font-weight:600
+}
+.sb-nav a .icon{font-size:.85rem;flex-shrink:0}
+
+.sb-filters{padding:0 10px 10px;flex:1}
+.flt-grp{margin-bottom:11px}
+.flt-label{
+  display:block;font-size:.6rem;font-weight:700;letter-spacing:.8px;
+  color:#a09880;text-transform:uppercase;margin-bottom:5px
+}
+.flt-sel{
+  width:100%;background:#faf8f5;border:1px solid #ddd8ce;border-radius:7px;
+  color:#374151;font-size:.72rem;padding:6px 10px;cursor:pointer;
+  outline:none;appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a09880'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 9px center;padding-right:26px
+}
+.flt-sel:focus{border-color:#8a7560;outline:none}
+
+.btn-reset{
+  display:block;margin:4px 10px 16px;padding:7px 0;
+  background:transparent;border:1px solid #ddd8ce;border-radius:7px;
+  color:#a09880;font-size:.68rem;cursor:pointer;width:calc(100% - 20px);
+  transition:all .15s;letter-spacing:.3px
+}
+.btn-reset:hover{background:#f5f0e8;color:#3d2e1e;border-color:#8a7560}
+
+.sb-footer{
+  padding:10px 14px;border-top:1px solid #e8e4dc;
+  font-size:.58rem;color:#b0a890;flex-shrink:0;line-height:1.6
+}
+
+/* ── Main ─────────────────────────────────────────────────── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+.topbar{
+  background:#fff;border-bottom:1px solid #e8e4dc;
+  padding:8px 22px;display:flex;align-items:center;gap:14px;
+  flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,.05)
+}
+.topbar-logo{height:46px;width:auto;border-radius:7px;background:#f5f0e8;padding:3px 8px;flex-shrink:0}
+.page-title{
+  font-size:.92rem;font-weight:700;color:#0f172a;
+  display:flex;align-items:center;gap:8px;flex-shrink:0
+}
+.page-title-badge{
+  background:#f5f0e8;border:1px solid #ddd8ce;
+  color:#6b5540;font-size:.62rem;padding:2px 9px;
+  border-radius:10px;font-weight:600;letter-spacing:.3px
+}
+.filter-tags{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.tag{
+  background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;
+  font-size:.62rem;font-weight:600;padding:3px 8px;border-radius:10px;
+  display:flex;align-items:center;gap:4px;white-space:nowrap
+}
+.tag-x{cursor:pointer;opacity:.6;margin-left:2px;font-size:.65rem}
+.tag-x:hover{opacity:1}
+.topbar-meta{font-size:.62rem;color:#94a3b8;white-space:nowrap;flex-shrink:0;text-align:right;line-height:1.5}
+
+/* ── Content ──────────────────────────────────────────────── */
+.content{flex:1;overflow-y:auto;padding:16px 20px;background:#f5f0e8}
+
+/* ── KPIs ─────────────────────────────────────────────────── */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{
+  background:#fff;border-radius:10px;padding:15px 16px;
+  box-shadow:0 1px 3px rgba(0,0,0,.07);
+  border-top:3px solid var(--ac,#3b82f6)
+}
+.kpi-label{font-size:.59rem;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.kpi-value{font-size:1.35rem;font-weight:700;color:#0f172a;margin:4px 0 2px;line-height:1.2}
+.kpi-sub{font-size:.63rem;color:#94a3b8}
+
+/* ── Sections ─────────────────────────────────────────────── */
+.section{
+  background:#fff;border-radius:10px;padding:16px 18px;
+  margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.07)
+}
+.section-hd{
+  font-size:.63rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:1.1px;color:#64748b;margin-bottom:13px;
+  display:flex;align-items:center;gap:8px;
+  padding-bottom:9px;border-bottom:1px solid #f1f5f9
+}
+.section-hd::before{
+  content:'';display:inline-block;width:3px;height:14px;
+  background:#3b82f6;border-radius:2px;flex-shrink:0
+}
+
+/* ── Abas principais ──────────────────────────────────────── */
+.main-tabs{
+  display:flex;gap:0;margin-bottom:16px;
+  border-bottom:2px solid #e8e4dc;background:#fff;
+  border-radius:10px 10px 0 0;padding:0 6px
+}
+.main-tab{
+  background:transparent;border:none;border-bottom:2px solid transparent;
+  padding:12px 20px;font-size:.8rem;font-weight:500;color:#94a3b8;
+  cursor:pointer;margin-bottom:-2px;transition:all .15s;font-family:inherit;
+  white-space:nowrap
+}
+.main-tab:hover{color:#374151}
+.main-tab.active{color:#2c1e0f;font-weight:700;border-bottom-color:#8a7560}
+
+/* ── Tabs internas (dentro de cada seção) ─────────────────── */
+.tabs{display:flex;gap:6px;margin-bottom:13px}
+.tab{
+  border:1px solid #e2e8f0;background:transparent;color:#64748b;
+  padding:4px 13px;border-radius:16px;font-size:.69rem;
+  cursor:pointer;transition:all .15s;font-family:inherit
+}
+.tab.active{background:#2c1e0f;border-color:#2c1e0f;color:#fff;font-weight:600}
+
+/* ── Grid ─────────────────────────────────────────────────── */
+.g2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;align-items:start}
+.ch{position:relative}
+
+/* ── Table ─────────────────────────────────────────────────── */
+table{width:100%;border-collapse:collapse;font-size:.71rem;margin-top:12px}
+th{
+  color:#64748b;text-transform:uppercase;letter-spacing:.6px;font-size:.6rem;
+  padding:6px 10px;border-bottom:2px solid #f1f5f9;text-align:right;font-weight:600
+}
+th:first-child{text-align:left}
+td{padding:7px 10px;border-bottom:1px solid #f8fafc;text-align:right;color:#374151}
+td:first-child{text-align:left;color:#0f172a;font-weight:500}
+tr:hover td{background:#f8fafc}
+tr:last-child td{border-bottom:none}
+
+/* ── Insight ──────────────────────────────────────────────── */
+.insight{
+  margin-top:11px;padding:10px 14px;
+  background:#f8fafc;border:1px solid #e8edf4;
+  border-left:3px solid #3b82f6;border-radius:0 7px 7px 0;
+  font-size:.7rem;line-height:1.8;color:#475569
+}
+.insight strong{color:#0f172a}
+
+/* ── Misc ─────────────────────────────────────────────────── */
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.empty{text-align:center;padding:32px 0;color:#94a3b8;font-size:.8rem}
+
+@media(max-width:960px){
+  .sidebar{display:none}
+  .kpis{grid-template-columns:1fr 1fr}
+  .g2{grid-template-columns:1fr}
+}
+@media(max-width:520px){.kpis{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ── Sidebar ──────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sb-logo-top">
+    <img src="toronto_logo.png" alt="Toronto LTDA" class="sb-logo-big">
+  </div>
+  <div class="sb-sec">P&aacute;ginas</div>
+  <nav class="sb-nav">
+    <a href="painel_mix.html" class="active">
+      <span class="icon">&#127863;</span> Mix de Produtos
+    </a>
+    <a href="painel_funil.html">
+      <span class="icon">&#128202;</span> Funil de Vendas
+    </a>
+    <a href="painel_conversao.html">
+      <span class="icon">&#128222;</span> Convers&atilde;o
+    </a>
+    <a href="painel_cancelamentos.html">
+      <span class="icon">&#9888;</span> Cancelamentos
+    </a>
+  </nav>
+
+  <div class="sb-sec">Filtros</div>
+  <div class="sb-filters">
+    <div class="flt-grp">
+      <label class="flt-label">Ano</label>
+      <select class="flt-sel" id="f-ano" onchange="onFilter()">
+        <option value="">Todos</option>
+      </select>
+    </div>
+    <div class="flt-grp">
+      <label class="flt-label">M&ecirc;s</label>
+      <select class="flt-sel" id="f-mes" onchange="onFilter()">
+        <option value="">Todos</option>
+      </select>
+    </div>
+    <div class="flt-grp">
+      <label class="flt-label">Categoria</label>
+      <select class="flt-sel" id="f-cat" onchange="onFilter()">
+        <option value="">Todas</option>
+      </select>
+    </div>
+    <div class="flt-grp">
+      <label class="flt-label">Pa&iacute;s de Origem</label>
+      <select class="flt-sel" id="f-pais" onchange="onFilter()">
+        <option value="">Todos</option>
+      </select>
+    </div>
+  </div>
+  <button class="btn-reset" onclick="resetFilters()">&#8635;&nbsp; Limpar Filtros</button>
+
+  <div class="sb-footer">
+    Dados fict&iacute;cios para portf&oacute;lio<br>
+    <span id="sb-dt"></span>
+  </div>
+</aside>
+
+<!-- ── Main ─────────────────────────────────────────────────── -->
+<div class="main">
+
+  <div class="topbar">
+
+    <div class="page-title">
+      &#127863; Mix de Produtos
+      <span class="page-title-badge">An&aacute;lise de Portf&oacute;lio</span>
+    </div>
+    <div class="filter-tags" id="filter-tags"></div>
+    <div class="topbar-meta" id="topbar-meta"></div>
+  </div>
+
+  <div class="content">
+
+    <!-- KPIs -->
+    <div class="kpis">
+      <div class="kpi" style="--ac:#3b82f6">
+        <div class="kpi-label">SKUs no Cat&aacute;logo</div>
+        <div class="kpi-value" id="kv-skus">—</div>
+        <div class="kpi-sub" id="ks-skus"></div>
+      </div>
+      <div class="kpi" style="--ac:#c0392b">
+        <div class="kpi-label">Categoria L&iacute;der</div>
+        <div class="kpi-value" id="kv-cat">—</div>
+        <div class="kpi-sub" id="ks-cat"></div>
+      </div>
+      <div class="kpi" style="--ac:#0ea5e9">
+        <div class="kpi-label">Pa&iacute;s L&iacute;der</div>
+        <div class="kpi-value" id="kv-pais">—</div>
+        <div class="kpi-sub" id="ks-pais"></div>
+      </div>
+      <div class="kpi" style="--ac:#16a34a">
+        <div class="kpi-label">Ticket M&eacute;dio / Item</div>
+        <div class="kpi-value" id="kv-ticket">—</div>
+        <div class="kpi-sub">valor l&iacute;quido m&eacute;dio por unidade</div>
+      </div>
+    </div>
+
+    <!-- Abas principais -->
+    <div class="main-tabs">
+      <button class="main-tab active" data-section="cat">&#127863; Mix por Categoria</button>
+      <button class="main-tab" data-section="saz">&#128197; Sazonalidade</button>
+      <button class="main-tab" data-section="pais">&#127758; Por Pa&iacute;s de Origem</button>
+    </div>
+
+    <!-- Seção 1: Por Categoria -->
+    <div class="section" id="sec-cat">
+      <div class="section-hd">Mix por Categoria</div>
+      <div class="tabs" id="tabs-cat">
+        <button class="tab active" data-v="val">Faturamento (R$)</button>
+        <button class="tab" data-v="qtd">Volume (un.)</button>
+        <button class="tab" data-v="sku">SKUs</button>
+      </div>
+      <div class="g2">
+        <div><div class="ch" style="height:210px"><canvas id="c-cat-bar"></canvas></div></div>
+        <div><div class="ch" style="height:210px"><canvas id="c-cat-donut"></canvas></div></div>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Categoria</th><th>SKUs</th><th>Volume (un.)</th><th>Faturamento</th><th>% Fat.</th><th>Ticket / Item</th></tr>
+        </thead>
+        <tbody id="cat-tbody"></tbody>
+      </table>
+      <div class="insight" id="insight-cat"></div>
+    </div>
+
+    <!-- Seção 2: Sazonalidade -->
+    <div class="section" id="sec-saz" style="display:none">
+      <div class="section-hd">Sazonalidade por Categoria</div>
+      <div class="tabs" id="tabs-saz">
+        <button class="tab active" data-v="val">Faturamento (R$)</button>
+        <button class="tab" data-v="qtd">Volume (un.)</button>
+      </div>
+      <div class="ch" style="height:230px"><canvas id="c-saz"></canvas></div>
+      <div class="insight" id="insight-saz"></div>
+    </div>
+
+    <!-- Seção 3: Por País -->
+    <div class="section" id="sec-pais" style="display:none">
+      <div class="section-hd">Por Pa&iacute;s de Origem</div>
+      <div class="tabs" id="tabs-pais">
+        <button class="tab active" data-v="val">Faturamento (R$)</button>
+        <button class="tab" data-v="qtd">Volume (un.)</button>
+      </div>
+      <div class="g2">
+        <div><div class="ch" style="height:260px"><canvas id="c-pais-bar"></canvas></div></div>
+        <div><div class="ch" style="height:260px"><canvas id="c-pais-donut"></canvas></div></div>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Pa&iacute;s</th><th>SKUs</th><th>Volume (un.)</th><th>Faturamento</th><th>% Fat.</th><th>Ticket / Item</th></tr>
+        </thead>
+        <tbody id="pais-tbody"></tbody>
+      </table>
+      <div class="insight" id="insight-pais"></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+const D = {"raw": [{"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Destilado", "pais": "Escócia", "volume": 1314, "faturamento": 420567.02}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Destilado", "pais": "França", "volume": 450, "faturamento": 106992.2}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Destilado", "pais": "Inglaterra", "volume": 1032, "faturamento": 350637.07}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Destilado", "pais": "México", "volume": 708, "faturamento": 244480.18}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Espumante", "pais": "Brasil", "volume": 1122, "faturamento": 110920.71}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Espumante", "pais": "Espanha", "volume": 156, "faturamento": 53155.5}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Espumante", "pais": "França", "volume": 1350, "faturamento": 496698.81}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Espumante", "pais": "Itália", "volume": 960, "faturamento": 207639.35}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Rosé", "pais": "Argentina", "volume": 1068, "faturamento": 295352.42}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Rosé", "pais": "França", "volume": 1944, "faturamento": 661939.52}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Vinho Branco", "pais": "Chile", "volume": 942, "faturamento": 374766.48}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Vinho Branco", "pais": "França", "volume": 588, "faturamento": 201641.37}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Vinho Branco", "pais": "Itália", "volume": 294, "faturamento": 106111.77}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 636, "faturamento": 187400.8}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 564, "faturamento": 113567.59}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 1470, "faturamento": 435074.2}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 1008, "faturamento": 285169.83}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 186, "faturamento": 72091.36}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 1170, "faturamento": 284620.22}, {"ano": "2024", "mes": "2024-05", "mes_label": "mai/24", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 648, "faturamento": 187009.25}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Destilado", "pais": "Escócia", "volume": 1650, "faturamento": 524811.27}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Destilado", "pais": "França", "volume": 420, "faturamento": 107330.02}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Destilado", "pais": "Inglaterra", "volume": 834, "faturamento": 269672.43}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Destilado", "pais": "México", "volume": 594, "faturamento": 258581.65}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Espumante", "pais": "Brasil", "volume": 1452, "faturamento": 169567.36}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Espumante", "pais": "Espanha", "volume": 120, "faturamento": 39441.38}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Espumante", "pais": "França", "volume": 1002, "faturamento": 363609.49}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Espumante", "pais": "Itália", "volume": 1104, "faturamento": 264400.71}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Rosé", "pais": "Argentina", "volume": 1458, "faturamento": 443106.6}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Rosé", "pais": "França", "volume": 2166, "faturamento": 775848.99}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Vinho Branco", "pais": "Chile", "volume": 702, "faturamento": 248143.33}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Vinho Branco", "pais": "França", "volume": 474, "faturamento": 178964.75}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Vinho Branco", "pais": "Itália", "volume": 312, "faturamento": 105312.0}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 882, "faturamento": 206500.39}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 510, "faturamento": 87154.75}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 1512, "faturamento": 444664.89}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 882, "faturamento": 257704.2}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 252, "faturamento": 102229.25}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 696, "faturamento": 192423.87}, {"ano": "2024", "mes": "2024-06", "mes_label": "jun/24", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 558, "faturamento": 146462.6}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Destilado", "pais": "Escócia", "volume": 1248, "faturamento": 468386.46}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Destilado", "pais": "França", "volume": 558, "faturamento": 152285.55}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Destilado", "pais": "Inglaterra", "volume": 1002, "faturamento": 336812.98}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Destilado", "pais": "México", "volume": 744, "faturamento": 167951.75}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Espumante", "pais": "Brasil", "volume": 1038, "faturamento": 133415.2}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Espumante", "pais": "Espanha", "volume": 36, "faturamento": 12013.15}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Espumante", "pais": "França", "volume": 1290, "faturamento": 458404.91}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Espumante", "pais": "Itália", "volume": 1008, "faturamento": 275010.51}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Rosé", "pais": "Argentina", "volume": 1470, "faturamento": 462639.54}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Rosé", "pais": "França", "volume": 1806, "faturamento": 634202.81}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Vinho Branco", "pais": "Chile", "volume": 570, "faturamento": 216779.48}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Vinho Branco", "pais": "França", "volume": 648, "faturamento": 228068.32}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Vinho Branco", "pais": "Itália", "volume": 432, "faturamento": 164289.34}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 480, "faturamento": 132953.94}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 744, "faturamento": 133551.7}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 1518, "faturamento": 420243.28}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 1254, "faturamento": 355085.18}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 222, "faturamento": 97315.9}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 462, "faturamento": 95938.87}, {"ano": "2024", "mes": "2024-07", "mes_label": "jul/24", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 606, "faturamento": 173468.79}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Destilado", "pais": "Escócia", "volume": 1254, "faturamento": 423731.01}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Destilado", "pais": "França", "volume": 660, "faturamento": 191432.33}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Destilado", "pais": "Inglaterra", "volume": 996, "faturamento": 337804.36}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Destilado", "pais": "México", "volume": 624, "faturamento": 185820.93}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Espumante", "pais": "Brasil", "volume": 918, "faturamento": 99721.61}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Espumante", "pais": "Espanha", "volume": 150, "faturamento": 49434.62}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Espumante", "pais": "França", "volume": 1212, "faturamento": 440812.37}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Espumante", "pais": "Itália", "volume": 1338, "faturamento": 289603.11}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Rosé", "pais": "Argentina", "volume": 1500, "faturamento": 435141.29}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Rosé", "pais": "França", "volume": 1890, "faturamento": 656300.74}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Vinho Branco", "pais": "Chile", "volume": 1164, "faturamento": 433808.77}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Vinho Branco", "pais": "França", "volume": 474, "faturamento": 194849.91}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Vinho Branco", "pais": "Itália", "volume": 588, "faturamento": 259923.95}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 696, "faturamento": 151489.05}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 708, "faturamento": 106918.74}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 1362, "faturamento": 360518.8}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 948, "faturamento": 312422.57}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 384, "faturamento": 173743.6}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 612, "faturamento": 166848.88}, {"ano": "2024", "mes": "2024-08", "mes_label": "ago/24", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 702, "faturamento": 196916.52}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Destilado", "pais": "Escócia", "volume": 1482, "faturamento": 490855.75}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Destilado", "pais": "França", "volume": 630, "faturamento": 180584.04}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Destilado", "pais": "Inglaterra", "volume": 960, "faturamento": 311216.64}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Destilado", "pais": "México", "volume": 750, "faturamento": 197947.35}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Espumante", "pais": "Brasil", "volume": 1608, "faturamento": 187416.75}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Espumante", "pais": "Espanha", "volume": 360, "faturamento": 118217.83}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Espumante", "pais": "França", "volume": 1734, "faturamento": 635305.99}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Espumante", "pais": "Itália", "volume": 1026, "faturamento": 281874.43}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Rosé", "pais": "Argentina", "volume": 1476, "faturamento": 439622.86}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Rosé", "pais": "França", "volume": 1914, "faturamento": 626926.54}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Vinho Branco", "pais": "Chile", "volume": 954, "faturamento": 386733.75}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Vinho Branco", "pais": "França", "volume": 426, "faturamento": 134394.36}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Vinho Branco", "pais": "Itália", "volume": 492, "faturamento": 211717.02}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 828, "faturamento": 169124.52}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 642, "faturamento": 142453.88}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 1416, "faturamento": 375202.1}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 906, "faturamento": 235685.13}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 126, "faturamento": 46741.42}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 834, "faturamento": 223553.01}, {"ano": "2024", "mes": "2024-09", "mes_label": "set/24", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 948, "faturamento": 238530.39}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Destilado", "pais": "Escócia", "volume": 1572, "faturamento": 556993.65}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Destilado", "pais": "França", "volume": 654, "faturamento": 154242.3}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Destilado", "pais": "Inglaterra", "volume": 1320, "faturamento": 481199.04}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Destilado", "pais": "México", "volume": 792, "faturamento": 247389.49}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Espumante", "pais": "Brasil", "volume": 1332, "faturamento": 155419.96}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Espumante", "pais": "Espanha", "volume": 246, "faturamento": 86218.23}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Espumante", "pais": "França", "volume": 1584, "faturamento": 623521.53}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Espumante", "pais": "Itália", "volume": 1332, "faturamento": 276684.7}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Rosé", "pais": "Argentina", "volume": 1740, "faturamento": 577354.42}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Rosé", "pais": "França", "volume": 2556, "faturamento": 944485.86}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Vinho Branco", "pais": "Chile", "volume": 960, "faturamento": 328371.15}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Vinho Branco", "pais": "França", "volume": 534, "faturamento": 186341.2}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Vinho Branco", "pais": "Itália", "volume": 336, "faturamento": 135797.89}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 1050, "faturamento": 272440.78}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 918, "faturamento": 142690.71}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 1284, "faturamento": 335288.06}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 1128, "faturamento": 303127.34}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 396, "faturamento": 181941.32}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 876, "faturamento": 225483.9}, {"ano": "2024", "mes": "2024-10", "mes_label": "out/24", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 666, "faturamento": 192292.07}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Destilado", "pais": "Escócia", "volume": 2400, "faturamento": 763183.14}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Destilado", "pais": "França", "volume": 630, "faturamento": 172203.34}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Destilado", "pais": "Inglaterra", "volume": 1380, "faturamento": 477140.27}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Destilado", "pais": "México", "volume": 1266, "faturamento": 338793.28}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Espumante", "pais": "Brasil", "volume": 2400, "faturamento": 251721.6}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Espumante", "pais": "Espanha", "volume": 318, "faturamento": 104291.1}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Espumante", "pais": "França", "volume": 2376, "faturamento": 860312.26}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Espumante", "pais": "Itália", "volume": 1674, "faturamento": 382995.07}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Rosé", "pais": "Argentina", "volume": 3276, "faturamento": 971265.23}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Rosé", "pais": "França", "volume": 3672, "faturamento": 1223585.92}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Vinho Branco", "pais": "Chile", "volume": 1122, "faturamento": 389476.93}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Vinho Branco", "pais": "França", "volume": 852, "faturamento": 289521.14}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Vinho Branco", "pais": "Itália", "volume": 1008, "faturamento": 332075.08}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 1308, "faturamento": 313619.72}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 900, "faturamento": 189412.26}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 3084, "faturamento": 910189.47}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 1722, "faturamento": 423219.3}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 438, "faturamento": 203384.41}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 1368, "faturamento": 407163.15}, {"ano": "2024", "mes": "2024-11", "mes_label": "nov/24", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 882, "faturamento": 217874.52}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Destilado", "pais": "Escócia", "volume": 3192, "faturamento": 1054304.65}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Destilado", "pais": "França", "volume": 1530, "faturamento": 406979.43}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Destilado", "pais": "Inglaterra", "volume": 1986, "faturamento": 621369.23}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Destilado", "pais": "México", "volume": 1002, "faturamento": 362081.72}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Espumante", "pais": "Brasil", "volume": 2244, "faturamento": 263534.1}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Espumante", "pais": "Espanha", "volume": 468, "faturamento": 155426.68}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Espumante", "pais": "França", "volume": 2742, "faturamento": 1002057.08}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Espumante", "pais": "Itália", "volume": 2076, "faturamento": 522418.92}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Rosé", "pais": "Argentina", "volume": 2724, "faturamento": 854085.94}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Rosé", "pais": "França", "volume": 3240, "faturamento": 1134907.82}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Vinho Branco", "pais": "Chile", "volume": 1362, "faturamento": 460123.88}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Vinho Branco", "pais": "França", "volume": 678, "faturamento": 200893.17}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Vinho Branco", "pais": "Itália", "volume": 906, "faturamento": 368316.65}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 1704, "faturamento": 397158.32}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 972, "faturamento": 219551.67}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 2430, "faturamento": 698142.56}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 1716, "faturamento": 474027.82}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 696, "faturamento": 292516.79}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 1326, "faturamento": 358478.08}, {"ano": "2024", "mes": "2024-12", "mes_label": "dez/24", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 1140, "faturamento": 301655.97}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Destilado", "pais": "Escócia", "volume": 1080, "faturamento": 415703.6}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Destilado", "pais": "França", "volume": 534, "faturamento": 187132.65}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Destilado", "pais": "Inglaterra", "volume": 606, "faturamento": 178458.55}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Destilado", "pais": "México", "volume": 222, "faturamento": 90115.93}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Espumante", "pais": "Brasil", "volume": 828, "faturamento": 106106.56}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Espumante", "pais": "Espanha", "volume": 96, "faturamento": 30192.31}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Espumante", "pais": "França", "volume": 936, "faturamento": 347073.02}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Espumante", "pais": "Itália", "volume": 894, "faturamento": 189954.71}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Rosé", "pais": "Argentina", "volume": 1158, "faturamento": 362488.53}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Rosé", "pais": "França", "volume": 1362, "faturamento": 475588.39}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Vinho Branco", "pais": "Chile", "volume": 684, "faturamento": 219125.48}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Vinho Branco", "pais": "França", "volume": 324, "faturamento": 79431.19}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Vinho Branco", "pais": "Itália", "volume": 336, "faturamento": 131919.91}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 522, "faturamento": 111046.34}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 576, "faturamento": 143522.53}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 1170, "faturamento": 331852.15}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 738, "faturamento": 222604.63}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 126, "faturamento": 57660.63}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 498, "faturamento": 136323.91}, {"ano": "2025", "mes": "2025-01", "mes_label": "jan/25", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 516, "faturamento": 161731.27}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Destilado", "pais": "Escócia", "volume": 888, "faturamento": 280843.23}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Destilado", "pais": "França", "volume": 306, "faturamento": 80362.76}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Destilado", "pais": "Inglaterra", "volume": 516, "faturamento": 138666.31}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Destilado", "pais": "México", "volume": 198, "faturamento": 71414.59}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Espumante", "pais": "Brasil", "volume": 708, "faturamento": 80770.74}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Espumante", "pais": "Espanha", "volume": 114, "faturamento": 37208.85}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Espumante", "pais": "França", "volume": 984, "faturamento": 371316.31}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Espumante", "pais": "Itália", "volume": 468, "faturamento": 127142.32}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Rosé", "pais": "Argentina", "volume": 828, "faturamento": 280959.77}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Rosé", "pais": "França", "volume": 1452, "faturamento": 513367.03}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Vinho Branco", "pais": "Chile", "volume": 432, "faturamento": 125446.13}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Vinho Branco", "pais": "França", "volume": 240, "faturamento": 83717.04}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Vinho Branco", "pais": "Itália", "volume": 348, "faturamento": 125105.22}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 318, "faturamento": 55180.06}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 378, "faturamento": 55145.43}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 702, "faturamento": 210686.9}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 570, "faturamento": 192920.69}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 306, "faturamento": 130276.31}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 534, "faturamento": 147221.25}, {"ano": "2025", "mes": "2025-02", "mes_label": "fev/25", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 456, "faturamento": 103062.57}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Destilado", "pais": "Escócia", "volume": 1248, "faturamento": 386151.97}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Destilado", "pais": "França", "volume": 402, "faturamento": 100572.36}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Destilado", "pais": "Inglaterra", "volume": 720, "faturamento": 269256.45}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Destilado", "pais": "México", "volume": 330, "faturamento": 124005.66}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Espumante", "pais": "Brasil", "volume": 1236, "faturamento": 150450.68}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Espumante", "pais": "Espanha", "volume": 102, "faturamento": 33275.34}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Espumante", "pais": "França", "volume": 1200, "faturamento": 484846.36}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Espumante", "pais": "Itália", "volume": 900, "faturamento": 270026.95}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Rosé", "pais": "Argentina", "volume": 1296, "faturamento": 404357.55}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Rosé", "pais": "França", "volume": 1674, "faturamento": 604027.39}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Vinho Branco", "pais": "Chile", "volume": 792, "faturamento": 293358.74}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Vinho Branco", "pais": "França", "volume": 420, "faturamento": 151512.89}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Vinho Branco", "pais": "Itália", "volume": 618, "faturamento": 256941.02}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 744, "faturamento": 201385.49}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 600, "faturamento": 115589.46}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 1398, "faturamento": 383119.01}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 984, "faturamento": 251386.45}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 174, "faturamento": 83364.83}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 582, "faturamento": 109726.63}, {"ano": "2025", "mes": "2025-03", "mes_label": "mar/25", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 546, "faturamento": 167545.08}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Destilado", "pais": "Escócia", "volume": 1092, "faturamento": 359002.9}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Destilado", "pais": "França", "volume": 534, "faturamento": 132745.71}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Destilado", "pais": "Inglaterra", "volume": 612, "faturamento": 190905.62}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Destilado", "pais": "México", "volume": 558, "faturamento": 138831.27}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Espumante", "pais": "Brasil", "volume": 1026, "faturamento": 133731.96}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Espumante", "pais": "Espanha", "volume": 180, "faturamento": 61235.14}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Espumante", "pais": "França", "volume": 1620, "faturamento": 617145.65}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Espumante", "pais": "Itália", "volume": 828, "faturamento": 197237.82}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Rosé", "pais": "Argentina", "volume": 1278, "faturamento": 395541.31}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Rosé", "pais": "França", "volume": 1644, "faturamento": 590301.21}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Vinho Branco", "pais": "Chile", "volume": 708, "faturamento": 275485.31}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Vinho Branco", "pais": "França", "volume": 600, "faturamento": 155406.96}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Vinho Branco", "pais": "Itália", "volume": 300, "faturamento": 111095.61}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 900, "faturamento": 249126.69}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 468, "faturamento": 97148.65}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 804, "faturamento": 196446.0}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 948, "faturamento": 291938.2}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 222, "faturamento": 111374.85}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 654, "faturamento": 158043.28}, {"ano": "2025", "mes": "2025-04", "mes_label": "abr/25", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 642, "faturamento": 198356.64}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Destilado", "pais": "Escócia", "volume": 1602, "faturamento": 524024.16}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Destilado", "pais": "França", "volume": 888, "faturamento": 251328.54}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Destilado", "pais": "Inglaterra", "volume": 1242, "faturamento": 400093.83}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Destilado", "pais": "México", "volume": 660, "faturamento": 223856.94}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Espumante", "pais": "Brasil", "volume": 1428, "faturamento": 181992.96}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Espumante", "pais": "Espanha", "volume": 90, "faturamento": 29022.91}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Espumante", "pais": "França", "volume": 1542, "faturamento": 596117.01}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Espumante", "pais": "Itália", "volume": 1206, "faturamento": 246243.98}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Rosé", "pais": "Argentina", "volume": 1356, "faturamento": 429319.63}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Rosé", "pais": "França", "volume": 2286, "faturamento": 775050.49}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Vinho Branco", "pais": "Chile", "volume": 618, "faturamento": 237895.22}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Vinho Branco", "pais": "França", "volume": 642, "faturamento": 212928.0}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Vinho Branco", "pais": "Itália", "volume": 522, "faturamento": 181967.63}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 630, "faturamento": 196276.16}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 534, "faturamento": 99308.67}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 1656, "faturamento": 462330.07}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 792, "faturamento": 232736.21}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 114, "faturamento": 52272.82}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 600, "faturamento": 137421.3}, {"ano": "2025", "mes": "2025-05", "mes_label": "mai/25", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 918, "faturamento": 269012.03}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Destilado", "pais": "Escócia", "volume": 1026, "faturamento": 339473.07}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Destilado", "pais": "França", "volume": 474, "faturamento": 120705.02}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Destilado", "pais": "Inglaterra", "volume": 720, "faturamento": 216327.22}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Destilado", "pais": "México", "volume": 420, "faturamento": 158553.66}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Espumante", "pais": "Brasil", "volume": 1170, "faturamento": 120641.79}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Espumante", "pais": "Espanha", "volume": 126, "faturamento": 41142.37}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Espumante", "pais": "França", "volume": 1584, "faturamento": 548856.13}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Espumante", "pais": "Itália", "volume": 1044, "faturamento": 299088.86}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Rosé", "pais": "Argentina", "volume": 924, "faturamento": 285176.44}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Rosé", "pais": "França", "volume": 1968, "faturamento": 731026.9}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Vinho Branco", "pais": "Chile", "volume": 840, "faturamento": 326719.97}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Vinho Branco", "pais": "França", "volume": 432, "faturamento": 129687.76}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Vinho Branco", "pais": "Itália", "volume": 246, "faturamento": 109418.25}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 840, "faturamento": 227090.16}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 384, "faturamento": 84096.18}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 1440, "faturamento": 394225.84}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 972, "faturamento": 218919.19}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 132, "faturamento": 56594.53}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 570, "faturamento": 116499.83}, {"ano": "2025", "mes": "2025-06", "mes_label": "jun/25", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 552, "faturamento": 149231.03}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Destilado", "pais": "Escócia", "volume": 1686, "faturamento": 525834.33}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Destilado", "pais": "França", "volume": 564, "faturamento": 158589.67}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Destilado", "pais": "Inglaterra", "volume": 1056, "faturamento": 312214.27}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Destilado", "pais": "México", "volume": 492, "faturamento": 213766.36}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Espumante", "pais": "Brasil", "volume": 1092, "faturamento": 113519.5}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Espumante", "pais": "Espanha", "volume": 36, "faturamento": 12119.46}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Espumante", "pais": "França", "volume": 1746, "faturamento": 674216.5}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Espumante", "pais": "Itália", "volume": 780, "faturamento": 232167.51}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Rosé", "pais": "Argentina", "volume": 1194, "faturamento": 417381.66}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Rosé", "pais": "França", "volume": 2202, "faturamento": 694751.31}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Vinho Branco", "pais": "Chile", "volume": 786, "faturamento": 269900.65}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Vinho Branco", "pais": "França", "volume": 390, "faturamento": 115846.23}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Vinho Branco", "pais": "Itália", "volume": 300, "faturamento": 121829.76}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 1050, "faturamento": 263140.12}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 426, "faturamento": 72568.65}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 1104, "faturamento": 318059.99}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 900, "faturamento": 297708.3}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 240, "faturamento": 106846.36}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 690, "faturamento": 145570.79}, {"ano": "2025", "mes": "2025-07", "mes_label": "jul/25", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 738, "faturamento": 202223.25}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Destilado", "pais": "Escócia", "volume": 828, "faturamento": 322850.96}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Destilado", "pais": "França", "volume": 402, "faturamento": 124075.33}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Destilado", "pais": "Inglaterra", "volume": 624, "faturamento": 230245.08}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Destilado", "pais": "México", "volume": 492, "faturamento": 213697.92}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Espumante", "pais": "Brasil", "volume": 1344, "faturamento": 138128.05}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Espumante", "pais": "Espanha", "volume": 258, "faturamento": 82284.71}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Espumante", "pais": "França", "volume": 996, "faturamento": 345353.65}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Espumante", "pais": "Itália", "volume": 1260, "faturamento": 282141.42}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Rosé", "pais": "Argentina", "volume": 1560, "faturamento": 437006.38}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Rosé", "pais": "França", "volume": 1818, "faturamento": 596387.37}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Vinho Branco", "pais": "Chile", "volume": 516, "faturamento": 177203.68}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Vinho Branco", "pais": "França", "volume": 600, "faturamento": 178447.32}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Vinho Branco", "pais": "Itália", "volume": 336, "faturamento": 125843.8}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 702, "faturamento": 182745.56}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 468, "faturamento": 112087.79}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 1476, "faturamento": 411114.11}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 1272, "faturamento": 392810.18}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 384, "faturamento": 171435.92}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 690, "faturamento": 204184.79}, {"ano": "2025", "mes": "2025-08", "mes_label": "ago/25", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 864, "faturamento": 239656.12}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Destilado", "pais": "Escócia", "volume": 1506, "faturamento": 471902.07}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Destilado", "pais": "França", "volume": 588, "faturamento": 146799.81}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Destilado", "pais": "Inglaterra", "volume": 1134, "faturamento": 322407.87}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Destilado", "pais": "México", "volume": 354, "faturamento": 80593.99}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Espumante", "pais": "Brasil", "volume": 1536, "faturamento": 173098.51}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Espumante", "pais": "Espanha", "volume": 84, "faturamento": 28703.97}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Espumante", "pais": "França", "volume": 1494, "faturamento": 576679.86}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Espumante", "pais": "Itália", "volume": 1146, "faturamento": 275942.41}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Rosé", "pais": "Argentina", "volume": 1434, "faturamento": 442407.87}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Rosé", "pais": "França", "volume": 2046, "faturamento": 654620.16}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Vinho Branco", "pais": "Chile", "volume": 774, "faturamento": 316317.48}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Vinho Branco", "pais": "França", "volume": 648, "faturamento": 220743.21}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Vinho Branco", "pais": "Itália", "volume": 396, "faturamento": 147543.13}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 828, "faturamento": 226094.33}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 654, "faturamento": 173250.69}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 1620, "faturamento": 472763.52}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 1338, "faturamento": 419867.62}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 276, "faturamento": 140420.19}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 738, "faturamento": 164609.2}, {"ano": "2025", "mes": "2025-09", "mes_label": "set/25", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 678, "faturamento": 214084.01}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Destilado", "pais": "Escócia", "volume": 1566, "faturamento": 524058.99}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Destilado", "pais": "França", "volume": 888, "faturamento": 265912.11}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Destilado", "pais": "Inglaterra", "volume": 1134, "faturamento": 319759.97}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Destilado", "pais": "México", "volume": 936, "faturamento": 325739.06}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Espumante", "pais": "Brasil", "volume": 1476, "faturamento": 153356.89}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Espumante", "pais": "Espanha", "volume": 228, "faturamento": 76756.55}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Espumante", "pais": "França", "volume": 1788, "faturamento": 656640.99}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Espumante", "pais": "Itália", "volume": 1158, "faturamento": 291895.49}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Rosé", "pais": "Argentina", "volume": 1584, "faturamento": 477264.71}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Rosé", "pais": "França", "volume": 2670, "faturamento": 856883.9}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Vinho Branco", "pais": "Chile", "volume": 936, "faturamento": 352738.25}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Vinho Branco", "pais": "França", "volume": 414, "faturamento": 130299.06}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Vinho Branco", "pais": "Itália", "volume": 498, "faturamento": 206376.34}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 1212, "faturamento": 306206.22}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 840, "faturamento": 170842.62}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 1632, "faturamento": 497144.68}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 1278, "faturamento": 356016.28}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 294, "faturamento": 139730.2}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 894, "faturamento": 201233.5}, {"ano": "2025", "mes": "2025-10", "mes_label": "out/25", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 1248, "faturamento": 344866.33}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Destilado", "pais": "Escócia", "volume": 1938, "faturamento": 600081.08}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Destilado", "pais": "França", "volume": 942, "faturamento": 283651.71}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Destilado", "pais": "Inglaterra", "volume": 1296, "faturamento": 373157.14}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Destilado", "pais": "México", "volume": 840, "faturamento": 270501.59}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Espumante", "pais": "Brasil", "volume": 1650, "faturamento": 202424.72}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Espumante", "pais": "Espanha", "volume": 150, "faturamento": 50072.49}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Espumante", "pais": "França", "volume": 2604, "faturamento": 914381.22}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Espumante", "pais": "Itália", "volume": 1644, "faturamento": 388593.41}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Rosé", "pais": "Argentina", "volume": 2334, "faturamento": 741123.02}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Rosé", "pais": "França", "volume": 3216, "faturamento": 1111335.97}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Vinho Branco", "pais": "Chile", "volume": 1044, "faturamento": 364695.86}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Vinho Branco", "pais": "França", "volume": 672, "faturamento": 191312.41}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Vinho Branco", "pais": "Itália", "volume": 696, "faturamento": 316808.6}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 1362, "faturamento": 315059.16}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 1158, "faturamento": 296065.27}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 2262, "faturamento": 620443.71}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 1686, "faturamento": 426202.95}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 522, "faturamento": 220947.43}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 1428, "faturamento": 367153.38}, {"ano": "2025", "mes": "2025-11", "mes_label": "nov/25", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 1014, "faturamento": 285027.64}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Destilado", "pais": "Escócia", "volume": 2850, "faturamento": 943572.26}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Destilado", "pais": "França", "volume": 966, "faturamento": 233910.78}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Destilado", "pais": "Inglaterra", "volume": 1758, "faturamento": 622647.92}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Destilado", "pais": "México", "volume": 1686, "faturamento": 583928.73}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Espumante", "pais": "Brasil", "volume": 2436, "faturamento": 299617.68}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Espumante", "pais": "Espanha", "volume": 240, "faturamento": 77925.97}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Espumante", "pais": "França", "volume": 3126, "faturamento": 1211544.83}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Espumante", "pais": "Itália", "volume": 2118, "faturamento": 459267.88}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Rosé", "pais": "Argentina", "volume": 3336, "faturamento": 1050460.15}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Rosé", "pais": "França", "volume": 4416, "faturamento": 1473701.63}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Vinho Branco", "pais": "Chile", "volume": 1614, "faturamento": 596077.91}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Vinho Branco", "pais": "França", "volume": 906, "faturamento": 309577.61}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Vinho Branco", "pais": "Itália", "volume": 1008, "faturamento": 401396.21}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 2034, "faturamento": 533757.07}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 1296, "faturamento": 294474.19}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 2760, "faturamento": 811025.77}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 2214, "faturamento": 537481.96}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 408, "faturamento": 184005.45}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 1812, "faturamento": 496416.04}, {"ano": "2025", "mes": "2025-12", "mes_label": "dez/25", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 1494, "faturamento": 391763.1}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Destilado", "pais": "Escócia", "volume": 1056, "faturamento": 375896.0}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Destilado", "pais": "França", "volume": 582, "faturamento": 165041.69}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Destilado", "pais": "Inglaterra", "volume": 546, "faturamento": 179856.0}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Destilado", "pais": "México", "volume": 456, "faturamento": 114337.08}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Espumante", "pais": "Brasil", "volume": 906, "faturamento": 108292.5}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Espumante", "pais": "Espanha", "volume": 78, "faturamento": 26046.2}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Espumante", "pais": "França", "volume": 1056, "faturamento": 334461.84}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Espumante", "pais": "Itália", "volume": 996, "faturamento": 250250.46}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Rosé", "pais": "Argentina", "volume": 1374, "faturamento": 364193.05}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Rosé", "pais": "França", "volume": 1464, "faturamento": 521255.71}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Vinho Branco", "pais": "Chile", "volume": 588, "faturamento": 179621.01}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Vinho Branco", "pais": "França", "volume": 324, "faturamento": 137878.71}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Vinho Branco", "pais": "Itália", "volume": 384, "faturamento": 159610.78}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 786, "faturamento": 207120.91}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 780, "faturamento": 139774.81}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 894, "faturamento": 236333.1}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 924, "faturamento": 312254.56}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 312, "faturamento": 148452.22}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 348, "faturamento": 112849.66}, {"ano": "2026", "mes": "2026-01", "mes_label": "jan/26", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 474, "faturamento": 133267.97}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Destilado", "pais": "Escócia", "volume": 756, "faturamento": 228920.09}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Destilado", "pais": "França", "volume": 300, "faturamento": 76637.73}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Destilado", "pais": "Inglaterra", "volume": 456, "faturamento": 183456.03}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Destilado", "pais": "México", "volume": 192, "faturamento": 68185.59}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Espumante", "pais": "Brasil", "volume": 624, "faturamento": 67793.66}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Espumante", "pais": "Espanha", "volume": 60, "faturamento": 20624.33}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Espumante", "pais": "França", "volume": 870, "faturamento": 307997.61}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Espumante", "pais": "Itália", "volume": 522, "faturamento": 78439.02}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Rosé", "pais": "Argentina", "volume": 594, "faturamento": 151739.06}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Rosé", "pais": "França", "volume": 1218, "faturamento": 445021.72}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Vinho Branco", "pais": "Chile", "volume": 798, "faturamento": 267617.17}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Vinho Branco", "pais": "França", "volume": 204, "faturamento": 91193.02}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Vinho Branco", "pais": "Itália", "volume": 234, "faturamento": 100065.39}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 216, "faturamento": 45513.24}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 294, "faturamento": 42743.19}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 546, "faturamento": 134896.99}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 462, "faturamento": 70263.07}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 36, "faturamento": 14645.46}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 510, "faturamento": 170577.44}, {"ano": "2026", "mes": "2026-02", "mes_label": "fev/26", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 438, "faturamento": 113603.87}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Destilado", "pais": "Escócia", "volume": 1062, "faturamento": 356330.26}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Destilado", "pais": "França", "volume": 402, "faturamento": 124641.96}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Destilado", "pais": "Inglaterra", "volume": 732, "faturamento": 245639.27}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Destilado", "pais": "México", "volume": 726, "faturamento": 190151.89}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Espumante", "pais": "Brasil", "volume": 978, "faturamento": 114874.46}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Espumante", "pais": "Espanha", "volume": 192, "faturamento": 62510.87}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Espumante", "pais": "França", "volume": 1134, "faturamento": 475153.92}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Espumante", "pais": "Itália", "volume": 984, "faturamento": 233052.14}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Rosé", "pais": "Argentina", "volume": 870, "faturamento": 274749.09}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Rosé", "pais": "França", "volume": 1494, "faturamento": 542687.03}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Vinho Branco", "pais": "Chile", "volume": 570, "faturamento": 208012.31}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Vinho Branco", "pais": "França", "volume": 420, "faturamento": 130669.95}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Vinho Branco", "pais": "Itália", "volume": 348, "faturamento": 142238.23}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 924, "faturamento": 234291.16}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 498, "faturamento": 81086.88}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 816, "faturamento": 233851.53}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 1044, "faturamento": 283193.04}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 264, "faturamento": 124531.38}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 726, "faturamento": 155216.1}, {"ano": "2026", "mes": "2026-03", "mes_label": "mar/26", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 564, "faturamento": 142448.17}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Destilado", "pais": "Escócia", "volume": 1212, "faturamento": 426913.36}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Destilado", "pais": "França", "volume": 576, "faturamento": 137280.98}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Destilado", "pais": "Inglaterra", "volume": 834, "faturamento": 290526.99}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Destilado", "pais": "México", "volume": 468, "faturamento": 169732.18}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Espumante", "pais": "Brasil", "volume": 1050, "faturamento": 117984.01}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Espumante", "pais": "Espanha", "volume": 162, "faturamento": 53155.51}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Espumante", "pais": "França", "volume": 996, "faturamento": 373601.18}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Espumante", "pais": "Itália", "volume": 684, "faturamento": 191722.05}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Rosé", "pais": "Argentina", "volume": 1524, "faturamento": 490663.37}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Rosé", "pais": "França", "volume": 1938, "faturamento": 610874.04}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Vinho Branco", "pais": "Chile", "volume": 426, "faturamento": 147320.26}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Vinho Branco", "pais": "França", "volume": 444, "faturamento": 125801.8}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Vinho Branco", "pais": "Itália", "volume": 540, "faturamento": 230162.64}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 834, "faturamento": 255448.2}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 528, "faturamento": 91600.31}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 1410, "faturamento": 367616.59}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 954, "faturamento": 286509.97}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 210, "faturamento": 93557.83}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 582, "faturamento": 146991.98}, {"ano": "2026", "mes": "2026-04", "mes_label": "abr/26", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 684, "faturamento": 220958.87}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Destilado", "pais": "Escócia", "volume": 1314, "faturamento": 446421.43}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Destilado", "pais": "França", "volume": 528, "faturamento": 121381.54}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Destilado", "pais": "Inglaterra", "volume": 1044, "faturamento": 334502.23}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Destilado", "pais": "México", "volume": 534, "faturamento": 198334.94}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Espumante", "pais": "Brasil", "volume": 1224, "faturamento": 125242.81}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Espumante", "pais": "Espanha", "volume": 120, "faturamento": 39122.45}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Espumante", "pais": "França", "volume": 1140, "faturamento": 393522.58}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Espumante", "pais": "Itália", "volume": 1014, "faturamento": 301374.35}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Rosé", "pais": "Argentina", "volume": 1650, "faturamento": 515953.24}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Rosé", "pais": "França", "volume": 2166, "faturamento": 771872.95}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Vinho Branco", "pais": "Chile", "volume": 732, "faturamento": 248098.04}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Vinho Branco", "pais": "França", "volume": 444, "faturamento": 130325.85}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Vinho Branco", "pais": "Itália", "volume": 384, "faturamento": 160604.79}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 882, "faturamento": 221306.53}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 534, "faturamento": 94334.64}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 1464, "faturamento": 462089.13}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 1176, "faturamento": 314390.68}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 198, "faturamento": 87120.6}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 612, "faturamento": 126010.14}, {"ano": "2026", "mes": "2026-05", "mes_label": "mai/26", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 468, "faturamento": 137728.01}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Destilado", "pais": "Escócia", "volume": 1650, "faturamento": 559414.12}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Destilado", "pais": "França", "volume": 540, "faturamento": 144990.71}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Destilado", "pais": "Inglaterra", "volume": 936, "faturamento": 334917.63}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Destilado", "pais": "México", "volume": 642, "faturamento": 198243.29}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Espumante", "pais": "Brasil", "volume": 1056, "faturamento": 116095.42}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Espumante", "pais": "Espanha", "volume": 96, "faturamento": 32105.92}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Espumante", "pais": "França", "volume": 1764, "faturamento": 624590.49}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Espumante", "pais": "Itália", "volume": 1122, "faturamento": 241251.02}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Rosé", "pais": "Argentina", "volume": 1488, "faturamento": 468693.47}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Rosé", "pais": "França", "volume": 1830, "faturamento": 629688.42}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Vinho Branco", "pais": "Chile", "volume": 702, "faturamento": 234530.47}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Vinho Branco", "pais": "França", "volume": 480, "faturamento": 198805.28}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Vinho Branco", "pais": "Itália", "volume": 396, "faturamento": 155881.82}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Vinho Branco", "pais": "Portugal", "volume": 1266, "faturamento": 340310.46}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Vinho Tinto", "pais": "Argentina", "volume": 444, "faturamento": 112878.59}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Vinho Tinto", "pais": "Brasil", "volume": 1038, "faturamento": 286710.57}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Vinho Tinto", "pais": "Chile", "volume": 1008, "faturamento": 299874.76}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Vinho Tinto", "pais": "Itália", "volume": 318, "faturamento": 122206.56}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Vinho Tinto", "pais": "Portugal", "volume": 612, "faturamento": 131845.49}, {"ano": "2026", "mes": "2026-06", "mes_label": "jun/26", "categoria": "Vinho Tinto", "pais": "Uruguai", "volume": 408, "faturamento": 112048.76}], "dim": {"anos": ["2024", "2025", "2026"], "meses": ["2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06"], "mes_labels": {"2024-05": "mai/24", "2024-06": "jun/24", "2024-07": "jul/24", "2024-08": "ago/24", "2024-09": "set/24", "2024-10": "out/24", "2024-11": "nov/24", "2024-12": "dez/24", "2025-01": "jan/25", "2025-02": "fev/25", "2025-03": "mar/25", "2025-04": "abr/25", "2025-05": "mai/25", "2025-06": "jun/25", "2025-07": "jul/25", "2025-08": "ago/25", "2025-09": "set/25", "2025-10": "out/25", "2025-11": "nov/25", "2025-12": "dez/25", "2026-01": "jan/26", "2026-02": "fev/26", "2026-03": "mar/26", "2026-04": "abr/26", "2026-05": "mai/26", "2026-06": "jun/26"}, "categorias": ["Vinho Tinto", "Rosé", "Destilado", "Espumante", "Vinho Branco"], "paises": ["França", "Argentina", "Chile", "Itália", "Brasil", "Escócia", "Portugal", "Inglaterra", "México", "Uruguai", "Espanha"]}, "skus_cat": {"Destilado": 23, "Espumante": 25, "Rosé": 23, "Vinho Branco": 17, "Vinho Tinto": 32}, "skus_pais": {"Argentina": 14, "Brasil": 17, "Chile": 12, "Escócia": 9, "Espanha": 1, "França": 29, "Inglaterra": 6, "Itália": 12, "México": 4, "Portugal": 11, "Uruguai": 5}, "skus_detail": [{"categoria": "Destilado", "pais": "Escócia", "skus": 9}, {"categoria": "Destilado", "pais": "França", "skus": 4}, {"categoria": "Destilado", "pais": "Inglaterra", "skus": 6}, {"categoria": "Destilado", "pais": "México", "skus": 4}, {"categoria": "Espumante", "pais": "Brasil", "skus": 8}, {"categoria": "Espumante", "pais": "Espanha", "skus": 1}, {"categoria": "Espumante", "pais": "França", "skus": 9}, {"categoria": "Espumante", "pais": "Itália", "skus": 7}, {"categoria": "Rosé", "pais": "Argentina", "skus": 10}, {"categoria": "Rosé", "pais": "França", "skus": 13}, {"categoria": "Vinho Branco", "pais": "Chile", "skus": 5}, {"categoria": "Vinho Branco", "pais": "França", "skus": 3}, {"categoria": "Vinho Branco", "pais": "Itália", "skus": 3}, {"categoria": "Vinho Branco", "pais": "Portugal", "skus": 6}, {"categoria": "Vinho Tinto", "pais": "Argentina", "skus": 4}, {"categoria": "Vinho Tinto", "pais": "Brasil", "skus": 9}, {"categoria": "Vinho Tinto", "pais": "Chile", "skus": 7}, {"categoria": "Vinho Tinto", "pais": "Itália", "skus": 2}, {"categoria": "Vinho Tinto", "pais": "Portugal", "skus": 5}, {"categoria": "Vinho Tinto", "pais": "Uruguai", "skus": 5}]};
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function brl(v) {
+  if (!v || isNaN(v)) return 'R$ 0';
+  if (v >= 1e6) return 'R$ ' + (v / 1e6).toFixed(2).replace('.', ',') + 'M';
+  if (v >= 1e3) return 'R$ ' + (v / 1e3).toFixed(0) + 'K';
+  return 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function num(v) { return (v || 0).toLocaleString('pt-BR'); }
+function pct(v) { return (v || 0).toFixed(1) + '%'; }
+
+const tipBase = {
+  backgroundColor:'#fff', borderColor:'#e2e8f0', borderWidth:1,
+  titleColor:'#64748b', bodyColor:'#0f172a', padding:10, boxPadding:4,
+  mode:'index', intersect:false
+};
+const sx = {grid:{color:'#f1f5f9'}, ticks:{color:'#94a3b8', font:{size:11}}};
+const sy = {grid:{color:'#f1f5f9'}, ticks:{color:'#94a3b8', font:{size:11}}};
+
+const COR_CAT = {
+  'Vinho Tinto':'#dc2626','Rosé':'#db2777',
+  'Destilado':'#7c3aed','Espumante':'#ea580c','Vinho Branco':'#ca8a04'
+};
+const COR_PAIS = [
+  '#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444',
+  '#14b8a6','#f97316','#64748b','#ec4899','#84cc16','#06b6d4'
+];
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+const now = new Date();
+const dtStr = now.toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'numeric'});
+document.getElementById('sb-dt').textContent = dtStr;
+document.getElementById('topbar-meta').innerHTML =
+  'Atualizado em ' + dtStr + '<br>Apenas pedidos faturados';
+
+// Populate dropdowns
+const dim = D.dim;
+dim.anos.forEach(a => addOpt('f-ano', a, a));
+dim.meses.forEach(m => addOpt('f-mes', m, dim.mes_labels[m]));
+dim.categorias.forEach(c => addOpt('f-cat', c, c));
+dim.paises.forEach(p => addOpt('f-pais', p, p));
+
+function addOpt(id, val, label) {
+  const o = document.createElement('option');
+  o.value = val; o.textContent = label;
+  document.getElementById(id).appendChild(o);
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let state = {ano:'', mes:'', categoria:'', pais:''};
+let catMode = 'val', sazMode = 'val', paisMode = 'val';
+let activeSection = 'cat';
+const charts = {};
+
+function destroyChart(key) {
+  if (charts[key]) { charts[key].destroy(); delete charts[key]; }
+}
+
+// ── Filtering ─────────────────────────────────────────────────────────────────
+function getFiltered() {
+  return D.raw.filter(r =>
+    (!state.ano       || r.ano       === state.ano)       &&
+    (!state.mes       || r.mes       === state.mes)       &&
+    (!state.categoria || r.categoria === state.categoria) &&
+    (!state.pais      || r.pais      === state.pais)
+  );
+}
+
+function aggByCat(data) {
+  const map = {};
+  dim.categorias.forEach(c => { map[c] = {volume:0, faturamento:0}; });
+  data.forEach(r => {
+    map[r.categoria].volume      += r.volume;
+    map[r.categoria].faturamento += r.faturamento;
+  });
+  return dim.categorias
+    .map(c => ({
+      categoria:   c,
+      skus:        D.skus_cat[c] || 0,
+      volume:      map[c].volume,
+      faturamento: map[c].faturamento,
+      ticket:      map[c].volume ? map[c].faturamento / map[c].volume : 0
+    }))
+    .filter(c => c.faturamento > 0 || c.volume > 0)
+    .sort((a, b) => b.faturamento - a.faturamento);
+}
+
+function aggByPais(data) {
+  const map = {};
+  data.forEach(r => {
+    if (!map[r.pais]) map[r.pais] = {volume:0, faturamento:0};
+    map[r.pais].volume      += r.volume;
+    map[r.pais].faturamento += r.faturamento;
+  });
+  return Object.entries(map)
+    .map(([pais, v]) => ({
+      pais,
+      skus:        D.skus_pais[pais] || 0,
+      volume:      v.volume,
+      faturamento: v.faturamento,
+      ticket:      v.volume ? v.faturamento / v.volume : 0
+    }))
+    .sort((a, b) => b.faturamento - a.faturamento);
+}
+
+function aggByMes(data) {
+  const mesMap = {};
+  data.forEach(r => { if (!mesMap[r.mes]) mesMap[r.mes] = r.mes_label; });
+  const meses  = Object.keys(mesMap).sort();
+  const labels = meses.map(m => mesMap[m]);
+  const catSet = [...new Set(data.map(r => r.categoria))];
+  const catData = {};
+  catSet.forEach(c => { catData[c] = {val: new Array(meses.length).fill(0), qtd: new Array(meses.length).fill(0)}; });
+  data.forEach(r => {
+    const i = meses.indexOf(r.mes);
+    if (i >= 0) { catData[r.categoria].val[i] += r.faturamento; catData[r.categoria].qtd[i] += r.volume; }
+  });
+  return {meses, labels, catData, catSet};
+}
+
+function countSkus() {
+  return D.skus_detail.filter(s =>
+    (!state.categoria || s.categoria === state.categoria) &&
+    (!state.pais      || s.pais      === state.pais)
+  ).reduce((sum, s) => sum + s.skus, 0);
+}
+
+// ── KPIs ──────────────────────────────────────────────────────────────────────
+function renderKPIs(data) {
+  const totalVol = data.reduce((s, r) => s + r.volume, 0);
+  const totalFat = data.reduce((s, r) => s + r.faturamento, 0);
+  const cats  = aggByCat(data);
+  const paises = aggByPais(data);
+
+  document.getElementById('kv-skus').textContent  = countSkus();
+  document.getElementById('ks-skus').textContent  = cats.length + ' categorias · ' + paises.length + ' países';
+  document.getElementById('kv-cat').textContent   = cats[0]   ? cats[0].categoria  : '—';
+  document.getElementById('ks-cat').textContent   = cats[0]   ? brl(cats[0].faturamento) + ' faturados' : '';
+  document.getElementById('kv-pais').textContent  = paises[0] ? paises[0].pais      : '—';
+  document.getElementById('ks-pais').textContent  = paises[0] ? brl(paises[0].faturamento) + ' faturados' : '';
+  document.getElementById('kv-ticket').textContent = totalVol  ? brl(totalFat / totalVol) : '—';
+}
+
+// ── Categoria Charts ──────────────────────────────────────────────────────────
+function renderCat(data, mode) {
+  const cats  = aggByCat(data);
+  const isVal = mode === 'val', isSku = mode === 'sku';
+  const vals  = cats.map(c => isSku ? c.skus : isVal ? c.faturamento : c.volume);
+  const label = isSku ? 'SKUs' : isVal ? 'Faturamento' : 'Volume (un.)';
+  const total = vals.reduce((s, v) => s + v, 0);
+
+  if (!cats.length) {
+    ['cat-bar','cat-donut'].forEach(k => destroyChart(k));
+    document.getElementById('cat-tbody').innerHTML = '<tr><td colspan="6" class="empty">Nenhum dado para os filtros selecionados</td></tr>';
+    document.getElementById('insight-cat').innerHTML = '';
+    return;
+  }
+
+  destroyChart('cat-bar');
+  charts['cat-bar'] = new Chart('c-cat-bar', {
+    type: 'bar',
+    data: {
+      labels: cats.map(c => c.categoria),
+      datasets: [{
+        label,
+        data: vals,
+        backgroundColor: cats.map(c => COR_CAT[c.categoria] || '#64748b'),
+        borderRadius: 5, borderSkipped: false
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {display: false},
+        tooltip: {...tipBase, callbacks: {label: c => ` ${label}: ${isSku ? c.parsed.x : isVal ? brl(c.parsed.x) : num(c.parsed.x)}`}}
+      },
+      scales: {
+        x: {...sx, ticks: {color:'#94a3b8', callback: v => isVal ? brl(v) : v}},
+        y: {...sy, grid: {display: false}}
+      }
+    }
+  });
+
+  destroyChart('cat-donut');
+  charts['cat-donut'] = new Chart('c-cat-donut', {
+    type: 'doughnut',
+    data: {
+      labels: cats.map(c => c.categoria),
+      datasets: [{
+        data: vals,
+        backgroundColor: cats.map(c => COR_CAT[c.categoria] || '#64748b'),
+        borderWidth: 2, borderColor: '#fff', hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '62%',
+      plugins: {
+        legend: {position: 'bottom', labels: {color:'#64748b', boxWidth:12, padding:10, font:{size:11}}},
+        tooltip: {
+          ...tipBase,
+          callbacks: {label: c => {
+            const p = total ? (c.parsed / total * 100).toFixed(1) : '0.0';
+            return ` ${c.label}: ${isSku ? c.parsed : isVal ? brl(c.parsed) : num(c.parsed)} (${p}%)`;
+          }}
+        }
+      }
+    }
+  });
+
+  const fatTotal = cats.reduce((s, c) => s + c.faturamento, 0);
+  document.getElementById('cat-tbody').innerHTML = cats.map(c => {
+    const fp = fatTotal ? (c.faturamento / fatTotal * 100).toFixed(1) : '0.0';
+    const cor = COR_CAT[c.categoria] || '#64748b';
+    return `<tr>
+      <td><span class="dot" style="background:${cor}"></span>${c.categoria}</td>
+      <td>${c.skus}</td>
+      <td>${num(c.volume)}</td>
+      <td style="font-weight:600">${brl(c.faturamento)}</td>
+      <td>${fp}%</td>
+      <td>${brl(c.ticket)}</td>
+    </tr>`;
+  }).join('');
+
+  const lider   = cats[0];
+  const topTick = cats.reduce((a, b) => b.ticket > a.ticket ? b : a, cats[0]);
+  document.getElementById('insight-cat').innerHTML =
+    `<strong>🏆 Categoria líder:</strong> <strong>${lider.categoria}</strong> — <strong>${brl(lider.faturamento)}</strong>
+    (${pct(lider.faturamento / (fatTotal||1) * 100)} do total), ${lider.skus} SKUs, ${num(lider.volume)} unidades.
+    &nbsp;·&nbsp;
+    <strong>💰 Maior ticket/item:</strong> <strong>${topTick.categoria}</strong> — <strong>${brl(topTick.ticket)}</strong>/un.`;
+}
+
+// ── Sazonalidade Chart ────────────────────────────────────────────────────────
+function renderSaz(data, mode) {
+  const {meses, labels, catData, catSet} = aggByMes(data);
+  const isVal = mode === 'val';
+
+  destroyChart('saz');
+  if (!meses.length) {
+    document.getElementById('insight-saz').innerHTML = '';
+    return;
+  }
+
+  charts['saz'] = new Chart('c-saz', {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: catSet.map(cat => ({
+        label: cat,
+        data:  isVal ? catData[cat].val : catData[cat].qtd,
+        backgroundColor: COR_CAT[cat] || '#64748b',
+        stack: 'stack', borderWidth: 0
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {position:'top', labels:{color:'#64748b', boxWidth:12, padding:12, font:{size:11}}},
+        tooltip: {...tipBase, callbacks:{label: c => ` ${c.dataset.label}: ${isVal ? brl(c.parsed.y) : num(c.parsed.y)}`}}
+      },
+      scales: {
+        x: {...sx, stacked:true, ticks:{color:'#94a3b8', maxRotation:45, font:{size:10}}},
+        y: {...sy, stacked:true, ticks:{color:'#94a3b8', callback: v => isVal ? brl(v) : v}}
+      }
+    }
+  });
+
+  const totais  = labels.map((_, i) => catSet.reduce((s, c) => s + (isVal ? catData[c].val[i] : catData[c].qtd[i]), 0));
+  const maxIdx  = totais.indexOf(Math.max(...totais));
+  const minIdx  = totais.indexOf(Math.min(...totais));
+  const avg     = totais.reduce((s, v) => s + v, 0) / totais.length;
+  document.getElementById('insight-saz').innerHTML =
+    `<strong>📅 Pico sazonal:</strong> <strong>${labels[maxIdx]}</strong> — ${isVal ? brl(totais[maxIdx]) : num(totais[maxIdx])},
+    <strong>${pct((totais[maxIdx] / avg - 1) * 100)}</strong> acima da média mensal.
+    &nbsp;·&nbsp; Menor mês: <strong>${labels[minIdx]}</strong>.
+    O portfólio mantém todas as categorias ao longo do ano, com aceleração consistente no segundo semestre.`;
+}
+
+// ── País Charts ───────────────────────────────────────────────────────────────
+function renderPais(data, mode) {
+  const paises = aggByPais(data);
+  const isVal  = mode === 'val';
+  const vals   = paises.map(p => isVal ? p.faturamento : p.volume);
+  const label  = isVal ? 'Faturamento' : 'Volume (un.)';
+  const total  = vals.reduce((s, v) => s + v, 0);
+
+  if (!paises.length) {
+    ['pais-bar','pais-donut'].forEach(k => destroyChart(k));
+    document.getElementById('pais-tbody').innerHTML = '<tr><td colspan="6" class="empty">Nenhum dado para os filtros selecionados</td></tr>';
+    document.getElementById('insight-pais').innerHTML = '';
+    return;
+  }
+
+  destroyChart('pais-bar');
+  charts['pais-bar'] = new Chart('c-pais-bar', {
+    type: 'bar',
+    data: {
+      labels: paises.map(p => p.pais),
+      datasets: [{
+        label,
+        data: vals,
+        backgroundColor: paises.map((_, i) => COR_PAIS[i % COR_PAIS.length]),
+        borderRadius: 5, borderSkipped: false
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {display: false},
+        tooltip: {...tipBase, callbacks:{label: c => ` ${label}: ${isVal ? brl(c.parsed.x) : num(c.parsed.x)}`}}
+      },
+      scales: {
+        x: {...sx, ticks:{color:'#94a3b8', callback: v => isVal ? brl(v) : v}},
+        y: {...sy, grid:{display:false}}
+      }
+    }
+  });
+
+  destroyChart('pais-donut');
+  charts['pais-donut'] = new Chart('c-pais-donut', {
+    type: 'doughnut',
+    data: {
+      labels: paises.map(p => p.pais),
+      datasets: [{
+        data: vals,
+        backgroundColor: paises.map((_, i) => COR_PAIS[i % COR_PAIS.length]),
+        borderWidth: 2, borderColor:'#fff', hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout:'58%',
+      plugins: {
+        legend: {position:'bottom', labels:{color:'#64748b', boxWidth:10, padding:8, font:{size:10}}},
+        tooltip: {
+          ...tipBase,
+          callbacks:{label: c => {
+            const p = total ? (c.parsed / total * 100).toFixed(1) : '0.0';
+            return ` ${c.label}: ${isVal ? brl(c.parsed) : num(c.parsed)} (${p}%)`;
+          }}
+        }
+      }
+    }
+  });
+
+  const fatTotal = paises.reduce((s, p) => s + p.faturamento, 0);
+  document.getElementById('pais-tbody').innerHTML = paises.map((p, i) => {
+    const fp = fatTotal ? (p.faturamento / fatTotal * 100).toFixed(1) : '0.0';
+    return `<tr>
+      <td><span class="dot" style="background:${COR_PAIS[i % COR_PAIS.length]}"></span>${p.pais}</td>
+      <td>${p.skus}</td>
+      <td>${num(p.volume)}</td>
+      <td style="font-weight:600">${brl(p.faturamento)}</td>
+      <td>${fp}%</td>
+      <td>${brl(p.ticket)}</td>
+    </tr>`;
+  }).join('');
+
+  const lider   = paises[0];
+  const top3fat = paises.slice(0, 3).reduce((s, p) => s + p.faturamento, 0);
+  const top3nm  = paises.slice(0, 3).map(p => p.pais).join(', ');
+  document.getElementById('insight-pais').innerHTML =
+    `<strong>🌍 País líder:</strong> <strong>${lider.pais}</strong> — <strong>${brl(lider.faturamento)}</strong>
+    (${pct(lider.faturamento / (fatTotal||1) * 100)}), ${lider.skus} SKUs, ticket ${brl(lider.ticket)}/un.
+    &nbsp;·&nbsp;
+    <strong>Top 3</strong> (${top3nm}): <strong>${pct(top3fat / (fatTotal||1) * 100)}</strong> do faturamento.`;
+}
+
+// ── Switch main tab ───────────────────────────────────────────────────────────
+function switchTab(sec) {
+  activeSection = sec;
+  document.querySelectorAll('.main-tab').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.main-tab[data-section="${sec}"]`).classList.add('active');
+  ['cat','saz','pais'].forEach(s => {
+    document.getElementById('sec-' + s).style.display = s === sec ? '' : 'none';
+  });
+  const data = getFiltered();
+  if (sec === 'cat')  renderCat(data, catMode);
+  if (sec === 'saz')  renderSaz(data, sazMode);
+  if (sec === 'pais') renderPais(data, paisMode);
+}
+
+document.querySelectorAll('.main-tab').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.section));
+});
+
+// ── Render all ────────────────────────────────────────────────────────────────
+function renderAll() {
+  const data = getFiltered();
+  renderKPIs(data);
+  if (activeSection === 'cat')  renderCat(data, catMode);
+  if (activeSection === 'saz')  renderSaz(data, sazMode);
+  if (activeSection === 'pais') renderPais(data, paisMode);
+  updateTags();
+}
+
+// ── Filter tags ───────────────────────────────────────────────────────────────
+const TAG_LABELS = {ano:'Ano', mes:'Mês', categoria:'Categoria', pais:'País'};
+function updateTags() {
+  document.getElementById('filter-tags').innerHTML = Object.entries(state)
+    .filter(([, v]) => v)
+    .map(([k, v]) => {
+      const disp = k === 'mes' ? dim.mes_labels[v] || v : v;
+      return `<span class="tag">${TAG_LABELS[k]}: <strong>${disp}</strong>
+        <span class="tag-x" onclick="clearFilter('${k}')">✕</span></span>`;
+    }).join('');
+}
+
+function clearFilter(key) {
+  state[key] = '';
+  const elId = {ano:'f-ano', mes:'f-mes', categoria:'f-cat', pais:'f-pais'}[key];
+  document.getElementById(elId).value = '';
+  renderAll();
+}
+
+// ── Filter interaction ────────────────────────────────────────────────────────
+function onFilter() {
+  state.ano       = document.getElementById('f-ano').value;
+  state.mes       = document.getElementById('f-mes').value;
+  state.categoria = document.getElementById('f-cat').value;
+  state.pais      = document.getElementById('f-pais').value;
+
+  // Refresh month options for selected year
+  const mesEl  = document.getElementById('f-mes');
+  const curMes = mesEl.value;
+  const avail  = [...new Set(
+    D.raw.filter(r => !state.ano || r.ano === state.ano).map(r => r.mes)
+  )].sort();
+  mesEl.innerHTML = '<option value="">Todos</option>';
+  avail.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = dim.mes_labels[m] || m;
+    if (m === curMes) o.selected = true;
+    mesEl.appendChild(o);
+  });
+  if (!avail.includes(curMes)) state.mes = '';
+
+  renderAll();
+}
+
+function resetFilters() {
+  state = {ano:'', mes:'', categoria:'', pais:''};
+  ['f-ano','f-mes','f-cat','f-pais'].forEach(id => { document.getElementById(id).value = ''; });
+  const mesEl = document.getElementById('f-mes');
+  mesEl.innerHTML = '<option value="">Todos</option>';
+  dim.meses.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = dim.mes_labels[m] || m;
+    mesEl.appendChild(o);
+  });
+  renderAll();
+}
+
+// ── Tab handlers ──────────────────────────────────────────────────────────────
+document.querySelectorAll('#tabs-cat .tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#tabs-cat .tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    catMode = btn.dataset.v;
+    renderCat(getFiltered(), catMode);
+  });
+});
+document.querySelectorAll('#tabs-saz .tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#tabs-saz .tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    sazMode = btn.dataset.v;
+    renderSaz(getFiltered(), sazMode);
+  });
+});
+document.querySelectorAll('#tabs-pais .tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#tabs-pais .tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    paisMode = btn.dataset.v;
+    renderPais(getFiltered(), paisMode);
+  });
+});
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+renderAll();
+</script>
+</body>
+</html>
