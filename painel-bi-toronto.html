@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel BI — Toronto LTDA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;font-family:'Inter',system-ui,-apple-system,sans-serif;background:#f5f0e8;color:#0f172a}
+.page{max-width:880px;margin:0 auto;padding:48px 24px 64px}
+
+.header{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:48px}
+.logo{height:88px;width:auto;border-radius:12px;background:#fff;padding:6px 14px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:20px}
+.header h1{font-size:1.5rem;font-weight:700;color:#2c1e0f;letter-spacing:-.3px}
+.header p{margin-top:6px;font-size:.92rem;color:#64748b;max-width:480px;line-height:1.6}
+
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+@media(max-width:580px){.grid{grid-template-columns:1fr}}
+
+.card{background:#fff;border:1px solid #e8e4dc;border-radius:12px;padding:24px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:10px;transition:box-shadow .18s,transform .18s;position:relative;overflow:hidden}
+.card:hover{box-shadow:0 6px 20px rgba(0,0,0,.09);transform:translateY(-2px)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--c,#6b7fd4)}
+
+.card-icon{font-size:1.6rem}
+.card-title{font-size:1rem;font-weight:700;color:#2c1e0f}
+.card-desc{font-size:.82rem;color:#64748b;line-height:1.55}
+.card-arrow{margin-top:auto;font-size:.8rem;font-weight:600;color:var(--c,#6b7fd4);display:flex;align-items:center;gap:4px}
+
+.footer{margin-top:48px;text-align:center;font-size:.75rem;color:#a09080}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <img src="toronto_logo.png" alt="Toronto LTDA" class="logo">
+    <h1>Painel BI — Toronto LTDA</h1>
+    <p>Painéis interativos de análise comercial. Selecione um módulo para explorar.</p>
+  </div>
+
+  <div class="grid">
+    <a href="painel_funil.html" class="card" style="--c:#6b7fd4">
+      <div class="card-icon">🎯</div>
+      <div class="card-title">Funil de Vendas</div>
+      <div class="card-desc">Acompanhe oportunidades por etapa, taxa de conversão e tendências mensais por vendedor.</div>
+      <div class="card-arrow">Abrir painel →</div>
+    </a>
+
+    <a href="painel_conversao.html" class="card" style="--c:#2abfbf">
+      <div class="card-icon">📊</div>
+      <div class="card-title">Conversão de Atividades</div>
+      <div class="card-desc">Analise a conversão por canal de origem, vendedor e evolução mensal das atividades comerciais.</div>
+      <div class="card-arrow">Abrir painel →</div>
+    </a>
+
+    <a href="painel_cancelamentos.html" class="card" style="--c:#f59e0b">
+      <div class="card-icon">↩️</div>
+      <div class="card-title">Cancelamentos & Devoluções</div>
+      <div class="card-desc">Monitore volume e valor de cancelamentos e devoluções por mês, vendedor, categoria e segmento.</div>
+      <div class="card-arrow">Abrir painel →</div>
+    </a>
+
+    <a href="painel_mix.html" class="card" style="--c:#475569">
+      <div class="card-icon">🍷</div>
+      <div class="card-title">Mix de Produtos</div>
+      <div class="card-desc">Explore o desempenho do portfólio por categoria, país de origem, faixa de preço e vendedor.</div>
+      <div class="card-arrow">Abrir painel →</div>
+    </a>
+  </div>
+
+  <div class="footer">Toronto LTDA · Portfolio de Dados · 2025</div>
+</div>
+</body>
+</html>
